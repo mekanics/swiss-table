@@ -1,0 +1,19 @@
+{
+  "name": "swiss-table",
+  "version": "1.0.0",
+  "description": "A Swiss Table (Google Abseil-style flat hash map) implementation in TypeScript",
+  "type": "module",
+  "main": "src/swiss-table.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "dependencies": {
+    "dev": "^0.1.5"
+  }
+}
