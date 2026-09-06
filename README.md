@@ -1,3 +1,5 @@
+> After reading the post on Hacker News about the implementation of the Swiss table in Go: https://victoriametrics.com/blog/go-swiss-table-map/index.html, I began chatting with my OpenClaw to learn a little bit more about it. One of my questions was whether it would be feasible to implement this in JavaScript. This is the outcome.
+
 # Swiss Table
 
 A faithful, from-scratch implementation of Google's [Swiss Table](https://abseil.io/about/design/swisstables) (Abseil `flat_hash_map`) in TypeScript.
@@ -22,30 +24,30 @@ This is a readable, tested (36/36) port of the Abseil Swiss Table to pure TypeSc
 ## Usage
 
 ```typescript
-import { SwissTable } from "./src/swiss-table.js";
+import { SwissTable } from './src/swiss-table.js'
 
-const table = new SwissTable<string, number>();
-table.set("hello", 42);
-console.log(table.get("hello")); // 42
-console.log(table.size);          // 1
-table.delete("hello");
-console.log(table.has("hello"));  // false
+const table = new SwissTable<string, number>()
+table.set('hello', 42)
+console.log(table.get('hello')) // 42
+console.log(table.size) // 1
+table.delete('hello')
+console.log(table.has('hello')) // false
 ```
 
 ## API
 
-| Method | Description |
-|--------|-------------|
-| `set(key, value)` | Insert or update. Returns `true` if new, `false` if updated. |
-| `get(key)` | Look up. Returns `V \| undefined`. |
-| `has(key)` | Check existence. Returns `boolean`. |
-| `delete(key)` | Tombstone deletion. Returns `true` if found. |
-| `clear()` | Remove all entries. |
-| `size` (getter) | Number of active entries. |
-| `[Symbol.iterator]()` | Yields `[K, V]` pairs in slot order. |
-| `entries()` | Array of `[K, V]` pairs. |
-| `keysArray()` | Array of keys. |
-| `valuesArray()` | Array of values. |
+| Method                | Description                                                  |
+| --------------------- | ------------------------------------------------------------ |
+| `set(key, value)`     | Insert or update. Returns `true` if new, `false` if updated. |
+| `get(key)`            | Look up. Returns `V \| undefined`.                           |
+| `has(key)`            | Check existence. Returns `boolean`.                          |
+| `delete(key)`         | Tombstone deletion. Returns `true` if found.                 |
+| `clear()`             | Remove all entries.                                          |
+| `size` (getter)       | Number of active entries.                                    |
+| `[Symbol.iterator]()` | Yields `[K, V]` pairs in slot order.                         |
+| `entries()`           | Array of `[K, V]` pairs.                                     |
+| `keysArray()`         | Array of keys.                                               |
+| `valuesArray()`       | Array of values.                                             |
 
 ## Benchmarks: SwissTable vs. built-in `Map`
 
@@ -53,19 +55,19 @@ Measured on a Raspberry Pi 5, Node.js 24.16.0, V8 13.6.233.17-node.49 (best of 5
 
 **1,000,000 entries:**
 
-| Operation | `Map` (ms) | SwissTable (ms) | Ratio |
-|---|---|---|---|
-| `set`, 33-char string keys | 906 | 1,840 | **2.0×** |
-| `get`, hits (strings) | 601 | 822 | **1.4×** |
-| `get`, misses (strings) | 497 | 620 | **1.2×** |
-| `has`, hits (strings) | 532 | 664 | **1.25×** |
-| build + delete half (strings) | 962 | 1,881 | **2.0×** |
-| `set`, uint32 keys | 555 | 1,279 | **2.3×** |
-| `get`, hits (uint32) | 458 | 708 | **1.5×** |
-| `set`, object keys | 581 | 2,049 | **3.5×** |
-| `get`, hits (objects) | 354 | 818 | **2.3×** |
-| `get`, hits (1–2 char string keys) | 503 | 504 | **≈ tie** |
-| Heap after build (strings) | 29.3 MB | 33.6 MB | Map wins |
+| Operation                          | `Map` (ms) | SwissTable (ms) | Ratio     |
+| ---------------------------------- | ---------- | --------------- | --------- |
+| `set`, 33-char string keys         | 906        | 1,840           | **2.0×**  |
+| `get`, hits (strings)              | 601        | 822             | **1.4×**  |
+| `get`, misses (strings)            | 497        | 620             | **1.2×**  |
+| `has`, hits (strings)              | 532        | 664             | **1.25×** |
+| build + delete half (strings)      | 962        | 1,881           | **2.0×**  |
+| `set`, uint32 keys                 | 555        | 1,279           | **2.3×**  |
+| `get`, hits (uint32)               | 458        | 708             | **1.5×**  |
+| `set`, object keys                 | 581        | 2,049           | **3.5×**  |
+| `get`, hits (objects)              | 354        | 818             | **2.3×**  |
+| `get`, hits (1–2 char string keys) | 503        | 504             | **≈ tie** |
+| Heap after build (strings)         | 29.3 MB    | 33.6 MB         | Map wins  |
 
 **100,000 and 10,000 entries:** same pattern. `Map` wins every workload; SwissTable only ties when string keys are so short that the hash loop becomes negligible.
 
@@ -91,11 +93,11 @@ This design is not theoretical. The exact same Swiss Table algorithm powers prod
 
 This repo lets you read the design in TypeScript; the real thing runs inside V8/Go/Rust at the C++/assembly tier with real SIMD and engine-managed layout.
 
-## When *would* a custom hash table make sense in JS?
+## When _would_ a custom hash table make sense in JS?
 
 Not for replacing `Map`, but a few real niches exist:
 
-- **Value-equality keys:** you need `{x: 1, y: 2}` to match a *different* object with the same contents. `Map` uses SameValueZero (reference equality for objects). A custom table with injected `hash`/`equals` is the right tool. *This repo currently does not support that; it hashes objects by reference identity.*
+- **Value-equality keys:** you need `{x: 1, y: 2}` to match a _different_ object with the same contents. `Map` uses SameValueZero (reference equality for objects). A custom table with injected `hash`/`equals` is the right tool. _This repo currently does not support that; it hashes objects by reference identity._
 - **Fixed-size binary keys in flat Buffers:** when the table is backed by typed arrays and you avoid GC pressure (e.g. the `ronomon/hash-table` pattern).
 - **Inside WebAssembly:** real `v128` SIMD, no JS↔Wasm boundary crossings per op.
 - **Deterministic layout/reproducible hashing:** unseeded `cyrb53` and fixed probing make the table fully deterministic across runs — useful for tests, snapshots, or Merkle-style sync, though sorting keys is usually a better answer.
