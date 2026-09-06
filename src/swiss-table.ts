@@ -32,7 +32,7 @@ const MAX_LOAD_DENOMINATOR = 8;
 /**
  * cyrb53 — a fast, high-quality hash function with good avalanche properties.
  * Returns a 53-bit integer hash. No external dependencies.
- * @see https://github.com/bryc/code/blob/master/jshash/EXPERIMENTAL.md#cyrb53
+ * @see https://github.com/bryc/code/blob/master/jshash/experimental/cyrb53.js
  */
 function cyrb53(str: string, seed = 0): number {
   let h1 = 0xdeadbeef ^ seed;
